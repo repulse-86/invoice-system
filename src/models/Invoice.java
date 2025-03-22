@@ -3,9 +3,11 @@ package models;
 import java.util.ArrayList;
 import java.util.List;
 
+// invoice ay ang final summary for all the services availed
 public class Invoice {
 	private final int id;
 	private final Client client;
+	// ang isang invoice can have one or more services na included
 	private final List<InvoiceItem> items;
 	private double subtotal;
 	private double tax;

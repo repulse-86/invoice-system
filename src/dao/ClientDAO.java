@@ -12,6 +12,8 @@ import database.DatabaseConfig;
 import models.Client;
 
 public class ClientDAO {
+	// no need to explain. basta nag iinsert lang to sa database and the rest of DAO
+	// files
 	public void addClient(Client client) {
 		String sql = "INSERT INTO clients (name, email, phone) VALUES (?, ?, ?)";
 		try (Connection conn = DatabaseConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {

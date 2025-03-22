@@ -14,6 +14,7 @@ import models.InvoiceItem;
 import models.Service;
 
 public class CLI {
+	// initialize instances to be used
 	private final Scanner scanner = new Scanner(System.in);
 	private final EventDispatcher dispatcher;
 	private final ClientDAO clientDAO = new ClientDAO();
@@ -25,6 +26,7 @@ public class CLI {
 		this.dispatcher = dispatcher;
 	}
 
+	// responsible sa pag display ng console program
 	public void start() {
 		while (true) {
 			System.out.println("\n=== Virtual Assistant Invoice System ===");
@@ -56,9 +58,14 @@ public class CLI {
 		}
 	}
 
+	// naka compartmentalize ang bawat feature into functions
+	// each function meron sila ng kanyakanyang display and inputs
 	private void manageInvoices() {
 		System.out.println("\n=== Invoice Management ===");
+		// check if meron existing clients
 		List<Client> clients = clientDAO.getAllClients();
+
+		// dont proceed if walang clients
 		if (clients.isEmpty()) {
 			System.out.println("No clients available. Add a client first.");
 			return;
@@ -72,16 +79,22 @@ public class CLI {
 		int clientIndex = scanner.nextInt() - 1;
 		scanner.nextLine();
 
+		// if non-existent ang client, prompt error at restart
 		if (clientIndex < 0 || clientIndex >= clients.size()) {
 			System.out.println("\nInvalid selection.");
 			return;
 		}
 
+		// instantiate the client selected
 		Client client = clients.get(clientIndex);
+
+		// assign the invoice to the client
 		Invoice invoice = new Invoice(0, client);
 
 		while (true) {
-			List<Service> services = serviceDAO.getServicesByClient(client.getId()); // Filter by client
+			// fetch lahat ng services from a certain client
+			List<Service> services = serviceDAO.getServicesByClient(client.getId());
+			// dont proceed if wala
 			if (services.isEmpty()) {
 				System.out.println("\nNo services available for this client. Add services first.");
 				return;
@@ -108,20 +121,21 @@ public class CLI {
 			double hours = scanner.nextDouble();
 			scanner.nextLine();
 
-			invoice.addItem(services.get(serviceChoice), hours);
+			invoice.addItem(services.get(serviceChoice), hours); // iadd sa invoice ang service na selected
 		}
 
-		int invoiceId = invoiceDAO.addInvoice(invoice);
+		// create the invoice, store sa database
+		int invoiceId = invoiceDAO.addInvoice(invoice); // store sa database ang invoice along
 		if (invoiceId <= 0) {
 			System.out.println("Error: Invoice creation failed. No items were added.");
 			return;
 		}
 
 		for (InvoiceItem item : invoice.getItems()) {
-			invoiceItemDAO.addInvoiceItem(invoiceId, item);
+			invoiceItemDAO.addInvoiceItem(invoiceId, item); // store sa database
 		}
 
-		dispatcher.notify("invoice_created", invoice);
+		dispatcher.notify("invoice_created", invoice); // dispatch event
 	}
 
 	private void manageClients() {
@@ -143,12 +157,14 @@ public class CLI {
 			System.out.print("Enter client phone: ");
 			String phone = scanner.nextLine();
 
+			// create a new client instance with the inputs
 			Client client = new Client(0, name, email, phone);
-			clientDAO.addClient(client);
-			dispatcher.notify("client_added", client);
+			clientDAO.addClient(client); // store sa database
+			dispatcher.notify("client_added", client); // dispatch event
 			break;
 		case 2:
 			System.out.println("\n=== List of Clients ===");
+			// fetch all clients
 			List<Client> clients = clientDAO.getAllClients();
 			for (Client c : clients) {
 				System.out.println(c.getId() + ". " + c.getName() + " - " + c.getEmail());
@@ -179,7 +195,10 @@ public class CLI {
 
 		switch (choice) {
 		case 1:
+			// fetch all clients
 			List<Client> clients = clientDAO.getAllClients();
+
+			// dont proceed if empty
 			if (clients.isEmpty()) {
 				System.out.println("No clients available. Add a client first.");
 				return;
@@ -206,12 +225,15 @@ public class CLI {
 			double rate = scanner.nextDouble();
 			scanner.nextLine();
 
+			// create a new instance ng service with the inputs
 			Service service = new Service(0, name, rate);
-			serviceDAO.addService(service, selectedClient.getId());
-			dispatcher.notify("service_added", service);
+			serviceDAO.addService(service, selectedClient.getId()); // store sa database
+			dispatcher.notify("service_added", service); // dispatch event
 			break;
 		case 2:
 			System.out.println("\n=== List of Services ===");
+
+			// fetch all services added so far dito of every client
 			List<Service> services = serviceDAO.getAllServices();
 			for (Service s : services) {
 				System.out.println(s.getId() + ". " + s.getName() + " - $" + s.getHourlyRate() + "/hr");

@@ -11,6 +11,8 @@ public class Main {
 	public static void main(String[] args) {
 		EventDispatcher dispatcher = new EventDispatcher();
 
+		// iregister ang mga "events" sa dispatcher
+		// sila ang possbile events na mag occur
 		dispatcher.subscribe("client_added", (event, data) -> {
 			Client client = (Client) data;
 			System.out.println("[Event] New client added: " + client.getName());
@@ -34,6 +36,8 @@ public class Main {
 			System.out.println("Total: $" + invoice.getTotal());
 		});
 
+		// use the dispatcher in the CLI
+		// display the cli
 		CLI cli = new CLI(dispatcher);
 		cli.start();
 	}
