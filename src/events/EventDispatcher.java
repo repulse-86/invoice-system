@@ -15,12 +15,14 @@ public class EventDispatcher {
 	}
 
 	public void subscribe(String eventType, EventListener listener) {
-		listeners.get(eventType).add(listener);
+		listeners.computeIfAbsent(eventType, k -> new ArrayList<>()).add(listener);
 	}
 
 	public void notify(String eventType, Object data) {
-		for (EventListener listener : listeners.get(eventType)) {
-			listener.update(eventType, data);
+		if (listeners.containsKey(eventType)) {
+			for (EventListener listener : listeners.get(eventType)) {
+				listener.update(eventType, data);
+			}
 		}
 	}
 }
