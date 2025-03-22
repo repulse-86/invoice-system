@@ -1,12 +1,20 @@
 package cli;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import events.EventDispatcher;
+import models.Client;
+import models.Invoice;
+import models.Service;
 
 public class CLI {
 	private final Scanner scanner = new Scanner(System.in);
 	private final EventDispatcher dispatcher;
+	private final List<Client> clients = new ArrayList<>();
+	private final List<Service> services = new ArrayList<>();
+	private final List<Invoice> invoices = new ArrayList<>();
 
 	public CLI(EventDispatcher dispatcher) {
 		this.dispatcher = dispatcher;
@@ -26,19 +34,98 @@ public class CLI {
 
 			switch (choice) {
 			case 1:
-				System.out.println("Client Management Selected");
+				manageClients();
 				break;
 			case 2:
-				System.out.println("Service Management Selected");
+				manageServices();
 				break;
 			case 3:
-				System.out.println("Invoice Management Selected");
+				manageInvoices();
 				break;
 			case 4:
+				System.out.println("Exiting system...");
 				return;
 			default:
-				System.out.println("Invalid choice.");
+				System.out.println("Invalid choice. Try again.");
 			}
 		}
+	}
+
+	private void manageClients() {
+		System.out.println("=== Client Management ===");
+		System.out.print("Enter client name: ");
+		String name = scanner.nextLine();
+		System.out.print("Enter client email: ");
+		String email = scanner.nextLine();
+		System.out.print("Enter client phone: ");
+		String phone = scanner.nextLine();
+
+		Client client = new Client(clients.size() + 1, name, email, phone);
+		clients.add(client);
+		dispatcher.notify("client_added", client);
+	}
+
+	private void manageServices() {
+		System.out.println("=== Service Management ===");
+		System.out.print("Enter service name: ");
+		String name = scanner.nextLine();
+		System.out.print("Enter hourly rate: ");
+		double rate = scanner.nextDouble();
+		scanner.nextLine();
+
+		Service service = new Service(services.size() + 1, name, rate);
+		services.add(service);
+		dispatcher.notify("service_added", service);
+	}
+
+	private void manageInvoices() {
+		System.out.println("=== Invoice Management ===");
+		if (clients.isEmpty()) {
+			System.out.println("No clients available. Add a client first.");
+			return;
+		}
+		System.out.println("Select client:");
+		for (int i = 0; i < clients.size(); i++) {
+			System.out.println((i + 1) + ". " + clients.get(i).getName());
+		}
+		System.out.print("Enter client number: ");
+		int clientIndex = scanner.nextInt() - 1;
+		scanner.nextLine();
+
+		if (clientIndex < 0 || clientIndex >= clients.size()) {
+			System.out.println("Invalid client selection.");
+			return;
+		}
+
+		Client client = clients.get(clientIndex);
+		Invoice invoice = new Invoice(invoices.size() + 1, client);
+
+		while (true) {
+			System.out.println("Select a service to add:");
+			for (int i = 0; i < services.size(); i++) {
+				System.out.println(
+						(i + 1) + ". " + services.get(i).getName() + " ($" + services.get(i).getHourlyRate() + "/hr)");
+			}
+			System.out.println((services.size() + 1) + ". Finish Invoice");
+			System.out.print("Enter choice: ");
+			int serviceChoice = scanner.nextInt() - 1;
+			scanner.nextLine();
+
+			if (serviceChoice == services.size())
+				break;
+			if (serviceChoice < 0 || serviceChoice >= services.size()) {
+				System.out.println("Invalid selection.");
+				continue;
+			}
+
+			System.out.print("Enter hours worked: ");
+			double hours = scanner.nextDouble();
+			scanner.nextLine();
+
+			invoice.addItem(services.get(serviceChoice), hours);
+		}
+
+		invoices.add(invoice);
+		dispatcher.notify("invoice_created", invoice);
 	}
 }
