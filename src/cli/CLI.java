@@ -4,9 +4,13 @@ import java.util.List;
 import java.util.Scanner;
 
 import dao.ClientDAO;
+import dao.InvoiceDAO;
+import dao.InvoiceItemDAO;
 import dao.ServiceDAO;
 import events.EventDispatcher;
 import models.Client;
+import models.Invoice;
+import models.InvoiceItem;
 import models.Service;
 
 public class CLI {
@@ -14,6 +18,8 @@ public class CLI {
 	private final EventDispatcher dispatcher;
 	private final ClientDAO clientDAO = new ClientDAO();
 	private final ServiceDAO serviceDAO = new ServiceDAO();
+	private final InvoiceDAO invoiceDAO = new InvoiceDAO();
+	private final InvoiceItemDAO invoiceItemDAO = new InvoiceItemDAO();
 
 	public CLI(EventDispatcher dispatcher) {
 		this.dispatcher = dispatcher;
@@ -38,12 +44,76 @@ public class CLI {
 				manageServices();
 				break;
 			case 3:
+				manageInvoices();
+			case 4:
 				System.out.println("Exiting system...");
 				return;
 			default:
 				System.out.println("Invalid choice. Try again.");
 			}
 		}
+	}
+
+	private void manageInvoices() {
+		List<Client> clients = clientDAO.getAllClients();
+		if (clients.isEmpty()) {
+			System.out.println("No clients available. Add a client first.");
+			return;
+		}
+
+		System.out.println("Select a client:");
+		for (int i = 0; i < clients.size(); i++) {
+			System.out.println((i + 1) + ". " + clients.get(i).getName());
+		}
+		System.out.print("Enter client number: ");
+		int clientIndex = scanner.nextInt() - 1;
+		scanner.nextLine();
+
+		if (clientIndex < 0 || clientIndex >= clients.size()) {
+			System.out.println("Invalid selection.");
+			return;
+		}
+
+		Client client = clients.get(clientIndex);
+		Invoice invoice = new Invoice(0, client);
+
+		while (true) {
+			List<Service> services = serviceDAO.getAllServices();
+			if (services.isEmpty()) {
+				System.out.println("No services available. Add services first.");
+				return;
+			}
+
+			System.out.println("Select a service to add:");
+			for (int i = 0; i < services.size(); i++) {
+				System.out.println(
+						(i + 1) + ". " + services.get(i).getName() + " ($" + services.get(i).getHourlyRate() + "/hr)");
+			}
+			System.out.println((services.size() + 1) + ". Finish Invoice");
+			System.out.print("Enter choice: ");
+			int serviceChoice = scanner.nextInt() - 1;
+			scanner.nextLine();
+
+			if (serviceChoice == services.size())
+				break;
+			if (serviceChoice < 0 || serviceChoice >= services.size()) {
+				System.out.println("Invalid selection.");
+				continue;
+			}
+
+			System.out.print("Enter hours worked: ");
+			double hours = scanner.nextDouble();
+			scanner.nextLine();
+
+			invoice.addItem(services.get(serviceChoice), hours);
+		}
+
+		int invoiceId = invoiceDAO.addInvoice(invoice);
+		for (InvoiceItem item : invoice.getItems()) {
+			invoiceItemDAO.addInvoiceItem(invoiceId, item);
+		}
+
+		dispatcher.notify("invoice_created", invoice);
 	}
 
 	private void manageClients() {
