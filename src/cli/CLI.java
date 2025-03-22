@@ -27,10 +27,11 @@ public class CLI {
 
 	public void start() {
 		while (true) {
-			System.out.println("=== Virtual Assistant Invoice System ===");
+			System.out.println("\n=== Virtual Assistant Invoice System ===");
 			System.out.println("1. Client Management");
 			System.out.println("2. Service Management");
-			System.out.println("3. Exit");
+			System.out.println("3. Invoice Management");
+			System.out.println("4. Exit");
 			System.out.print("Enter your choice: ");
 
 			int choice = scanner.nextInt();
@@ -45,23 +46,25 @@ public class CLI {
 				break;
 			case 3:
 				manageInvoices();
+				break;
 			case 4:
-				System.out.println("Exiting system...");
+				System.out.println("\nExiting system...");
 				return;
 			default:
-				System.out.println("Invalid choice. Try again.");
+				System.out.println("\nInvalid choice. Try again.");
 			}
 		}
 	}
 
 	private void manageInvoices() {
+		System.out.println("\n=== Invoice Management ===");
 		List<Client> clients = clientDAO.getAllClients();
 		if (clients.isEmpty()) {
 			System.out.println("No clients available. Add a client first.");
 			return;
 		}
 
-		System.out.println("Select a client:");
+		System.out.println("\nSelect a client:");
 		for (int i = 0; i < clients.size(); i++) {
 			System.out.println((i + 1) + ". " + clients.get(i).getName());
 		}
@@ -70,7 +73,7 @@ public class CLI {
 		scanner.nextLine();
 
 		if (clientIndex < 0 || clientIndex >= clients.size()) {
-			System.out.println("Invalid selection.");
+			System.out.println("\nInvalid selection.");
 			return;
 		}
 
@@ -80,11 +83,11 @@ public class CLI {
 		while (true) {
 			List<Service> services = serviceDAO.getAllServices();
 			if (services.isEmpty()) {
-				System.out.println("No services available. Add services first.");
+				System.out.println("\nNo services available. Add services first.");
 				return;
 			}
 
-			System.out.println("Select a service to add:");
+			System.out.println("\nSelect a service to add:");
 			for (int i = 0; i < services.size(); i++) {
 				System.out.println(
 						(i + 1) + ". " + services.get(i).getName() + " ($" + services.get(i).getHourlyRate() + "/hr)");
@@ -97,7 +100,7 @@ public class CLI {
 			if (serviceChoice == services.size())
 				break;
 			if (serviceChoice < 0 || serviceChoice >= services.size()) {
-				System.out.println("Invalid selection.");
+				System.out.println("\nInvalid selection.");
 				continue;
 			}
 
@@ -117,7 +120,7 @@ public class CLI {
 	}
 
 	private void manageClients() {
-		System.out.println("=== Client Management ===");
+		System.out.println("\n=== Client Management ===");
 		System.out.println("1. Add Client");
 		System.out.println("2. View Clients");
 		System.out.println("3. Delete Client");
@@ -128,7 +131,7 @@ public class CLI {
 
 		switch (choice) {
 		case 1:
-			System.out.print("Enter client name: ");
+			System.out.print("\nEnter client name: ");
 			String name = scanner.nextLine();
 			System.out.print("Enter client email: ");
 			String email = scanner.nextLine();
@@ -140,13 +143,14 @@ public class CLI {
 			dispatcher.notify("client_added", client);
 			break;
 		case 2:
+			System.out.println("\n=== List of Clients ===");
 			List<Client> clients = clientDAO.getAllClients();
 			for (Client c : clients) {
 				System.out.println(c.getId() + ". " + c.getName() + " - " + c.getEmail());
 			}
 			break;
 		case 3:
-			System.out.print("Enter client ID to delete: ");
+			System.out.print("\nEnter client ID to delete: ");
 			int clientId = scanner.nextInt();
 			clientDAO.deleteClient(clientId);
 			System.out.println("Client deleted.");
@@ -154,12 +158,12 @@ public class CLI {
 		case 4:
 			return;
 		default:
-			System.out.println("Invalid choice.");
+			System.out.println("\nInvalid choice.");
 		}
 	}
 
 	private void manageServices() {
-		System.out.println("=== Service Management ===");
+		System.out.println("\n=== Service Management ===");
 		System.out.println("1. Add Service");
 		System.out.println("2. View Services");
 		System.out.println("3. Delete Service");
@@ -170,7 +174,7 @@ public class CLI {
 
 		switch (choice) {
 		case 1:
-			System.out.print("Enter service name: ");
+			System.out.print("\nEnter service name: ");
 			String name = scanner.nextLine();
 			System.out.print("Enter hourly rate: ");
 			double rate = scanner.nextDouble();
@@ -180,13 +184,14 @@ public class CLI {
 			dispatcher.notify("service_added", service);
 			break;
 		case 2:
+			System.out.println("\n=== List of Services ===");
 			List<Service> services = serviceDAO.getAllServices();
 			for (Service s : services) {
 				System.out.println(s.getId() + ". " + s.getName() + " - $" + s.getHourlyRate() + "/hr");
 			}
 			break;
 		case 3:
-			System.out.print("Enter service ID to delete: ");
+			System.out.print("\nEnter service ID to delete: ");
 			int serviceId = scanner.nextInt();
 			serviceDAO.deleteService(serviceId);
 			System.out.println("Service deleted.");
@@ -194,7 +199,7 @@ public class CLI {
 		case 4:
 			return;
 		default:
-			System.out.println("Invalid choice.");
+			System.out.println("\nInvalid choice.");
 		}
 	}
 }
