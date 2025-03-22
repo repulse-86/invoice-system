@@ -1,20 +1,19 @@
 package cli;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import dao.ClientDAO;
+import dao.ServiceDAO;
 import events.EventDispatcher;
 import models.Client;
-import models.Invoice;
 import models.Service;
 
 public class CLI {
 	private final Scanner scanner = new Scanner(System.in);
 	private final EventDispatcher dispatcher;
-	private final List<Client> clients = new ArrayList<>();
-	private final List<Service> services = new ArrayList<>();
-	private final List<Invoice> invoices = new ArrayList<>();
+	private final ClientDAO clientDAO = new ClientDAO();
+	private final ServiceDAO serviceDAO = new ServiceDAO();
 
 	public CLI(EventDispatcher dispatcher) {
 		this.dispatcher = dispatcher;
@@ -25,11 +24,12 @@ public class CLI {
 			System.out.println("=== Virtual Assistant Invoice System ===");
 			System.out.println("1. Client Management");
 			System.out.println("2. Service Management");
-			System.out.println("3. Invoice Management");
-			System.out.println("4. Exit");
+			System.out.println("3. Exit");
 			System.out.print("Enter your choice: ");
 
-			int choice = getIntInput();
+			int choice = scanner.nextInt();
+			scanner.nextLine();
+
 			switch (choice) {
 			case 1:
 				manageClients();
@@ -38,9 +38,6 @@ public class CLI {
 				manageServices();
 				break;
 			case 3:
-				manageInvoices();
-				break;
-			case 4:
 				System.out.println("Exiting system...");
 				return;
 			default:
@@ -51,106 +48,83 @@ public class CLI {
 
 	private void manageClients() {
 		System.out.println("=== Client Management ===");
-		System.out.print("Enter client name: ");
-		String name = scanner.nextLine();
-		System.out.print("Enter client email: ");
-		String email = scanner.nextLine();
-		System.out.print("Enter client phone: ");
-		String phone = scanner.nextLine();
+		System.out.println("1. Add Client");
+		System.out.println("2. View Clients");
+		System.out.println("3. Delete Client");
+		System.out.println("4. Back");
+		System.out.print("Enter choice: ");
+		int choice = scanner.nextInt();
+		scanner.nextLine();
 
-		Client client = new Client(clients.size() + 1, name, email, phone);
-		clients.add(client);
-		dispatcher.notify("client_added", client);
+		switch (choice) {
+		case 1:
+			System.out.print("Enter client name: ");
+			String name = scanner.nextLine();
+			System.out.print("Enter client email: ");
+			String email = scanner.nextLine();
+			System.out.print("Enter client phone: ");
+			String phone = scanner.nextLine();
+
+			Client client = new Client(0, name, email, phone);
+			clientDAO.addClient(client);
+			dispatcher.notify("client_added", client);
+			break;
+		case 2:
+			List<Client> clients = clientDAO.getAllClients();
+			for (Client c : clients) {
+				System.out.println(c.getId() + ". " + c.getName() + " - " + c.getEmail());
+			}
+			break;
+		case 3:
+			System.out.print("Enter client ID to delete: ");
+			int clientId = scanner.nextInt();
+			clientDAO.deleteClient(clientId);
+			System.out.println("Client deleted.");
+			break;
+		case 4:
+			return;
+		default:
+			System.out.println("Invalid choice.");
+		}
 	}
 
 	private void manageServices() {
 		System.out.println("=== Service Management ===");
-		System.out.print("Enter service name: ");
-		String name = scanner.nextLine();
-		System.out.print("Enter hourly rate: ");
-		double rate = getDoubleInput();
-
-		Service service = new Service(services.size() + 1, name, rate);
-		services.add(service);
-		dispatcher.notify("service_added", service);
-	}
-
-	private void manageInvoices() {
-		if (clients.isEmpty()) {
-			System.out.println("No clients available. Add a client first.");
-			return;
-		}
-
-		Client client = selectClient();
-		if (client == null)
-			return;
-
-		Invoice invoice = new Invoice(invoices.size() + 1, client);
-
-		while (true) {
-			Service service = selectService();
-			if (service == null)
-				break;
-
-			System.out.print("Enter hours worked: ");
-			double hours = getDoubleInput();
-
-			invoice.addItem(service, hours);
-		}
-
-		invoices.add(invoice);
-		dispatcher.notify("invoice_created", invoice);
-	}
-
-	private Client selectClient() {
-		System.out.println("Select a client:");
-		for (int i = 0; i < clients.size(); i++) {
-			System.out.println((i + 1) + ". " + clients.get(i).getName());
-		}
-		System.out.print("Enter client number: ");
-		int clientIndex = getIntInput() - 1;
-
-		if (clientIndex < 0 || clientIndex >= clients.size()) {
-			System.out.println("Invalid selection.");
-			return null;
-		}
-
-		return clients.get(clientIndex);
-	}
-
-	private Service selectService() {
-		System.out.println("Select a service to add:");
-		for (int i = 0; i < services.size(); i++) {
-			System.out.println(
-					(i + 1) + ". " + services.get(i).getName() + " ($" + services.get(i).getHourlyRate() + "/hr)");
-		}
-		System.out.println((services.size() + 1) + ". Finish Invoice");
+		System.out.println("1. Add Service");
+		System.out.println("2. View Services");
+		System.out.println("3. Delete Service");
+		System.out.println("4. Back");
 		System.out.print("Enter choice: ");
-		int serviceChoice = getIntInput() - 1;
+		int choice = scanner.nextInt();
+		scanner.nextLine();
 
-		if (serviceChoice == services.size())
-			return null;
-		if (serviceChoice < 0 || serviceChoice >= services.size()) {
-			System.out.println("Invalid selection.");
-			return null;
+		switch (choice) {
+		case 1:
+			System.out.print("Enter service name: ");
+			String name = scanner.nextLine();
+			System.out.print("Enter hourly rate: ");
+			double rate = scanner.nextDouble();
+
+			Service service = new Service(0, name, rate);
+			serviceDAO.addService(service);
+			dispatcher.notify("service_added", service);
+			break;
+		case 2:
+			List<Service> services = serviceDAO.getAllServices();
+			for (Service s : services) {
+				System.out.println(s.getId() + ". " + s.getName() + " - $" + s.getHourlyRate() + "/hr");
+			}
+			break;
+		case 3:
+			System.out.print("Enter service ID to delete: ");
+			int serviceId = scanner.nextInt();
+			serviceDAO.deleteService(serviceId);
+			System.out.println("Service deleted.");
+			break;
+		case 4:
+			return;
+		default:
+			System.out.println("Invalid choice.");
 		}
-
-		return services.get(serviceChoice);
-	}
-
-	private int getIntInput() {
-		while (!scanner.hasNextInt()) {
-			System.out.print("Invalid input. Enter a number: ");
-			scanner.next();
-		}
-		return scanner.nextInt();
-	}
-
-	private double getDoubleInput() {
-		while (!scanner.hasNextDouble()) {
-			System.out.print("Invalid input. Enter a valid number: ");
-			scanner.next();
-		}
-		return scanner.nextDouble();
 	}
 }

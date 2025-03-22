@@ -37,4 +37,26 @@ public class ServiceDAO {
 		}
 		return services;
 	}
+
+	public void updateService(Service service) {
+		String sql = "UPDATE services SET name = ?, hourly_rate = ? WHERE id = ?";
+		try (Connection conn = DatabaseConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+			stmt.setString(1, service.getName());
+			stmt.setDouble(2, service.getHourlyRate());
+			stmt.setInt(3, service.getId());
+			stmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void deleteService(int serviceId) {
+		String sql = "DELETE FROM services WHERE id = ?";
+		try (Connection conn = DatabaseConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+			stmt.setInt(1, serviceId);
+			stmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 }
