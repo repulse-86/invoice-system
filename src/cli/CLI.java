@@ -179,13 +179,35 @@ public class CLI {
 
 		switch (choice) {
 		case 1:
+			List<Client> clients = clientDAO.getAllClients();
+			if (clients.isEmpty()) {
+				System.out.println("No clients available. Add a client first.");
+				return;
+			}
+
+			System.out.println("\nSelect a client for this service:");
+			for (int i = 0; i < clients.size(); i++) {
+				System.out.println((i + 1) + ". " + clients.get(i).getName());
+			}
+			System.out.print("Enter client number: ");
+			int clientIndex = scanner.nextInt() - 1;
+			scanner.nextLine();
+
+			if (clientIndex < 0 || clientIndex >= clients.size()) {
+				System.out.println("\nInvalid selection.");
+				return;
+			}
+
+			Client selectedClient = clients.get(clientIndex);
+
 			System.out.print("\nEnter service name: ");
 			String name = scanner.nextLine();
 			System.out.print("Enter hourly rate: ");
 			double rate = scanner.nextDouble();
+			scanner.nextLine();
 
 			Service service = new Service(0, name, rate);
-			serviceDAO.addService(service);
+			serviceDAO.addService(service, selectedClient.getId());
 			dispatcher.notify("service_added", service);
 			break;
 		case 2:

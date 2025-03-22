@@ -12,11 +12,12 @@ import database.DatabaseConfig;
 import models.Service;
 
 public class ServiceDAO {
-	public void addService(Service service) {
-		String sql = "INSERT INTO services (name, hourly_rate) VALUES (?, ?)";
+	public void addService(Service service, int clientId) {
+		String sql = "INSERT INTO services (name, hourly_rate, client_id) VALUES (?, ?, ?)";
 		try (Connection conn = DatabaseConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
 			stmt.setString(1, service.getName());
 			stmt.setDouble(2, service.getHourlyRate());
+			stmt.setInt(3, clientId);
 			stmt.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
