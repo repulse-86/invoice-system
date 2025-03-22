@@ -39,6 +39,21 @@ public class ServiceDAO {
 		return services;
 	}
 
+	public List<Service> getServicesByClient(int clientId) {
+		List<Service> services = new ArrayList<>();
+		String sql = "SELECT * FROM services WHERE client_id = ?";
+		try (Connection conn = DatabaseConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+			stmt.setInt(1, clientId);
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				services.add(new Service(rs.getInt("id"), rs.getString("name"), rs.getDouble("hourly_rate")));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return services;
+	}
+
 	public void updateService(Service service) {
 		String sql = "UPDATE services SET name = ?, hourly_rate = ? WHERE id = ?";
 		try (Connection conn = DatabaseConfig.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {

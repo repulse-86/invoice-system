@@ -81,9 +81,9 @@ public class CLI {
 		Invoice invoice = new Invoice(0, client);
 
 		while (true) {
-			List<Service> services = serviceDAO.getAllServices();
+			List<Service> services = serviceDAO.getServicesByClient(client.getId()); // Filter by client
 			if (services.isEmpty()) {
-				System.out.println("\nNo services available. Add services first.");
+				System.out.println("\nNo services available for this client. Add services first.");
 				return;
 			}
 
