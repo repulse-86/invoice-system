@@ -1,0 +1,55 @@
+package models;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Invoice {
+	private final int id;
+	private final Client client;
+	private final List<InvoiceItem> items;
+	private double subtotal;
+	private double tax;
+	private double total;
+
+	public Invoice(int id, Client client) {
+		this.id = id;
+		this.client = client;
+		this.items = new ArrayList<>();
+	}
+
+	public void addItem(Service service, double hours) {
+		InvoiceItem item = new InvoiceItem(service, hours);
+		items.add(item);
+		calculateTotals();
+	}
+
+	private void calculateTotals() {
+		subtotal = items.stream().mapToDouble(InvoiceItem::getTotalPrice).sum();
+		tax = subtotal * 0.10;
+		total = subtotal + tax;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public Client getClient() {
+		return client;
+	}
+
+	public List<InvoiceItem> getItems() {
+		return items;
+	}
+
+	public double getSubtotal() {
+		return subtotal;
+	}
+
+	public double getTax() {
+		return tax;
+	}
+
+	public double getTotal() {
+		return total;
+	}
+}
