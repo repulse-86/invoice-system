@@ -18,12 +18,11 @@ public class Invoice {
 	}
 
 	public void addItem(Service service, double hours) {
-		InvoiceItem item = new InvoiceItem(service, hours);
-		items.add(item);
-		calculateTotals();
+		items.add(new InvoiceItem(service, hours));
+		recalculateTotals();
 	}
 
-	private void calculateTotals() {
+	private void recalculateTotals() {
 		subtotal = items.stream().mapToDouble(InvoiceItem::getTotalPrice).sum();
 		tax = subtotal * 0.10;
 		total = subtotal + tax;

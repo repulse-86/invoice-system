@@ -29,9 +29,7 @@ public class CLI {
 			System.out.println("4. Exit");
 			System.out.print("Enter your choice: ");
 
-			int choice = scanner.nextInt();
-			scanner.nextLine();
-
+			int choice = getIntInput();
 			switch (choice) {
 			case 1:
 				manageClients();
@@ -70,8 +68,7 @@ public class CLI {
 		System.out.print("Enter service name: ");
 		String name = scanner.nextLine();
 		System.out.print("Enter hourly rate: ");
-		double rate = scanner.nextDouble();
-		scanner.nextLine();
+		double rate = getDoubleInput();
 
 		Service service = new Service(services.size() + 1, name, rate);
 		services.add(service);
@@ -79,53 +76,81 @@ public class CLI {
 	}
 
 	private void manageInvoices() {
-		System.out.println("=== Invoice Management ===");
 		if (clients.isEmpty()) {
 			System.out.println("No clients available. Add a client first.");
 			return;
 		}
-		System.out.println("Select client:");
-		for (int i = 0; i < clients.size(); i++) {
-			System.out.println((i + 1) + ". " + clients.get(i).getName());
-		}
-		System.out.print("Enter client number: ");
-		int clientIndex = scanner.nextInt() - 1;
-		scanner.nextLine();
 
-		if (clientIndex < 0 || clientIndex >= clients.size()) {
-			System.out.println("Invalid client selection.");
+		Client client = selectClient();
+		if (client == null)
 			return;
-		}
 
-		Client client = clients.get(clientIndex);
 		Invoice invoice = new Invoice(invoices.size() + 1, client);
 
 		while (true) {
-			System.out.println("Select a service to add:");
-			for (int i = 0; i < services.size(); i++) {
-				System.out.println(
-						(i + 1) + ". " + services.get(i).getName() + " ($" + services.get(i).getHourlyRate() + "/hr)");
-			}
-			System.out.println((services.size() + 1) + ". Finish Invoice");
-			System.out.print("Enter choice: ");
-			int serviceChoice = scanner.nextInt() - 1;
-			scanner.nextLine();
-
-			if (serviceChoice == services.size())
+			Service service = selectService();
+			if (service == null)
 				break;
-			if (serviceChoice < 0 || serviceChoice >= services.size()) {
-				System.out.println("Invalid selection.");
-				continue;
-			}
 
 			System.out.print("Enter hours worked: ");
-			double hours = scanner.nextDouble();
-			scanner.nextLine();
+			double hours = getDoubleInput();
 
-			invoice.addItem(services.get(serviceChoice), hours);
+			invoice.addItem(service, hours);
 		}
 
 		invoices.add(invoice);
 		dispatcher.notify("invoice_created", invoice);
+	}
+
+	private Client selectClient() {
+		System.out.println("Select a client:");
+		for (int i = 0; i < clients.size(); i++) {
+			System.out.println((i + 1) + ". " + clients.get(i).getName());
+		}
+		System.out.print("Enter client number: ");
+		int clientIndex = getIntInput() - 1;
+
+		if (clientIndex < 0 || clientIndex >= clients.size()) {
+			System.out.println("Invalid selection.");
+			return null;
+		}
+
+		return clients.get(clientIndex);
+	}
+
+	private Service selectService() {
+		System.out.println("Select a service to add:");
+		for (int i = 0; i < services.size(); i++) {
+			System.out.println(
+					(i + 1) + ". " + services.get(i).getName() + " ($" + services.get(i).getHourlyRate() + "/hr)");
+		}
+		System.out.println((services.size() + 1) + ". Finish Invoice");
+		System.out.print("Enter choice: ");
+		int serviceChoice = getIntInput() - 1;
+
+		if (serviceChoice == services.size())
+			return null;
+		if (serviceChoice < 0 || serviceChoice >= services.size()) {
+			System.out.println("Invalid selection.");
+			return null;
+		}
+
+		return services.get(serviceChoice);
+	}
+
+	private int getIntInput() {
+		while (!scanner.hasNextInt()) {
+			System.out.print("Invalid input. Enter a number: ");
+			scanner.next();
+		}
+		return scanner.nextInt();
+	}
+
+	private double getDoubleInput() {
+		while (!scanner.hasNextDouble()) {
+			System.out.print("Invalid input. Enter a valid number: ");
+			scanner.next();
+		}
+		return scanner.nextDouble();
 	}
 }

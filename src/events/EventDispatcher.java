@@ -9,9 +9,13 @@ public class EventDispatcher {
 	private final Map<String, List<EventListener>> listeners = new HashMap<>();
 
 	public EventDispatcher() {
-		listeners.put("client_added", new ArrayList<>());
-		listeners.put("service_added", new ArrayList<>());
-		listeners.put("invoice_created", new ArrayList<>());
+		registerEventTypes("client_added", "service_added", "invoice_created");
+	}
+
+	private void registerEventTypes(String... eventTypes) {
+		for (String eventType : eventTypes) {
+			listeners.putIfAbsent(eventType, new ArrayList<>());
+		}
 	}
 
 	public void subscribe(String eventType, EventListener listener) {
