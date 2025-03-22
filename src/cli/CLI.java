@@ -112,6 +112,11 @@ public class CLI {
 		}
 
 		int invoiceId = invoiceDAO.addInvoice(invoice);
+		if (invoiceId <= 0) {
+			System.out.println("Error: Invoice creation failed. No items were added.");
+			return;
+		}
+
 		for (InvoiceItem item : invoice.getItems()) {
 			invoiceItemDAO.addInvoiceItem(invoiceId, item);
 		}
